@@ -38,16 +38,17 @@ services:
       - /mnt/cache/webdata/seouloved.com:/usr/share/nginx/html/seouloved.com:ro
       - /mnt/cache/webdata/primepicksusa.com:/usr/share/nginx/html/primepicksusa.com:ro
       - /mnt/cache/webdata/mijutalk.co:/usr/share/nginx/html/mijutalk.co:ro
-    # 포트 매핑 제거: NPM이 컨테이너 이름으로 바로 접속합니다.
     networks:
       - media-net # 통합 네트워크 사용
-  
+
   # ------------------------------------------------
-  # 3. Plex
+  # 3. Plex (포트 추가됨)
   # ------------------------------------------------
   plex:
     image: linuxserver/plex:latest
     container_name: plex
+    ports:
+      - "32400:32400" # 호스트 포트 32400으로 노출 (Web UI 접속용)
     environment:
       - PUID=1000
       - PGID=1000
@@ -58,6 +59,9 @@ services:
       - /mnt/cache/appdata/plex:/config
       - /mnt/zurg:/mnt/zurg
     restart: unless-stopped
+    networks:
+      - media-net # 네트워크 명시
+
   # ------------------------------------------------
   # 4. Sonarr (TV Shows)
   # ------------------------------------------------
@@ -97,7 +101,7 @@ services:
     networks:
       - media-net
   # ------------------------------------------------
-  # 6. Bazarr
+  # 6. Bazarr (volumes 수정됨)
   # ------------------------------------------------
   bazarr:
     image: linuxserver/bazarr:latest
@@ -109,7 +113,7 @@ services:
       - UMASK_SET=002
     volumes:
       - /mnt/cache/appdata/bazarr:/config
-      - /mnt/zurg
+      - /mnt/zurg:/mnt/zurg # <--- 컨테이너 경로 추가됨
     ports:
       - "6767:6767"
     restart: unless-stopped
@@ -181,7 +185,7 @@ services:
       - 5055:5055
     volumes:
       - /mnt/cache/appdata/seerr:/app/config
-      - /mnt/zurg
+      - /mnt/zurg:/mnt/zurg # <--- 컨테이너 경로 추가됨
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/status || exit 1
       start_period: 20s
