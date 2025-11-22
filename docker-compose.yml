@@ -254,7 +254,7 @@ services:
   # 13. zurg & rclone 
   # ------------------------------------------------
   zurg:
-    image: ghcr.io/debridmediamanager/zurg-testing:latest
+    image: ghcr.io/debridmediamanager/zurg:latest
     container_name: zurg
     restart: unless-stopped
     ports:
@@ -287,7 +287,7 @@ services:
       - apparmor:unconfined
     devices:
       - /dev/fuse
-    command: "mount zurg: /data --allow-non-empty --allow-other --vfs-read-chunk-size 1M"
+    command: "mount zurg: /data --allow-non-empty --allow-other --vfs-read-chunk-size 1M --uid 1000 --gid 1000"
     networks: 
       - media-net
 
