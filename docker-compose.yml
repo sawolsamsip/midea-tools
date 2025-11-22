@@ -78,7 +78,7 @@ services:
       - UMASK_SET=002
     volumes:
       - /mnt/cache/appdata/emby:/config
-      - /mnt/zurg:/mnt/zurg # 미디어 파일 접근을 위해 동일하게 마운트
+      - /mnt/zurg:/data/media # 미디어 파일 접근을 위해 동일하게 마운트
     restart: unless-stopped
     networks:
       - media-net
@@ -249,6 +249,48 @@ services:
     stdin_open: true
     networks:
       - media-net
+
+  # ------------------------------------------------
+  # 13. zurg & rclone 
+  # ------------------------------------------------
+  zurg:
+    image: ghcr.io/debridmediamanager/zurg-testing:latest
+    container_name: zurg
+    restart: unless-stopped
+    ports:
+      - 9999:9999
+    volumes:
+      - /mnt/cache/appdata/zurg/config.yml:/app/config.yml
+      - /mnt/cache/appdata/zurg/logs:/app/logs
+      - /mnt/cache/appdata/zurg/data:/app/data
+      - /mnt/cache/appdata/zurg/dump:/app/dump
+      - /mnt/cache/appdata/zurg/strm:/app/strm
+      - /mnt/cache/appdata/zurg/plex_update.sh:/app/plex_update.sh
+      - /mnt/cache/appdata/zurg/emby_update.sh:/app/emby_update.sh
+    networks: 
+      - media-net
+    
+  rclone:
+    image: rclone/rclone:latest
+    container_name: rclone
+    restart: unless-stopped
+    environment:
+      TZ: America/Los_Angeles
+      PUID: 1000
+      PGID: 1000
+    volumes:
+      - /mnt/zurg:/data:rshared
+      - /mnt/cache/appdata/zurg/rclone.conf:/config/rclone/rclone.conf
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    devices:
+      - /dev/fuse
+    command: "mount zurg: /data --allow-non-empty --allow-other --vfs-read-chunk-size 1M"
+    networks: 
+      - media-net
+
 
 networks:
   media-net:
